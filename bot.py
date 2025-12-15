@@ -11,7 +11,6 @@ class DiscordBot(commands.Bot):
     def __init__(self) -> None:
         intents = discord.Intents.default()
         intents.message_content = True
-        
         super().__init__(
             command_prefix=commands.when_mentioned_or('&'),
             intents=intents,
@@ -21,18 +20,25 @@ class DiscordBot(commands.Bot):
     async def setup_hook(self) -> None:
         for file in os.listdir('./cogs'):
             if file.endswith('.py'):
-                await self.load_extension(f'cogs.{file[:-3]}')
+                try:
+                    await self.load_extension(f'cogs.{file[:-3]}')
+                    print(f"Loaded extension {file}")
+                except Exception as e:
+                    print(f"Failed to load extension {file}: {e}")
 
-    async def on_message(self, message: discord.Message) -> None:
-        if message.author == self.user or message.author.bot:
-            return
-        await self.process_commands(message)
+        try:
+            await self.tree.sync()
+            print(f"Synchronized commands")
+        except Exception as e:
+            print(f"Synchronization failed: {e}")
 
     async def on_command_error(self, context: Context, error: commands.CommandError) -> None:
         if isinstance(error, commands.CommandNotFound):
             return
-        await super().on_command_error(context, error)
+        print(error)
 
 keep_alive()
-bot = DiscordBot()
-bot.run(os.getenv('TOKEN'))
+
+if __name__ == '__main__':
+    client = DiscordBot()
+    client.run(os.getenv('TOKEN'))

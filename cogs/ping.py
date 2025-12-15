@@ -11,9 +11,10 @@ class Ping(commands.Cog):
         name="ping",
         description="Is it alive?"
     )
-
+    @commands.is_owner()
     async def ping(self, context: Context) -> None:
-        await context.send("Pong!")
+        latency = round(self.bot.latency * 1000)
+        await context.send(f"{latency}ms")
 
 async def setup(bot) -> None:
     await bot.add_cog(Ping(bot))
