@@ -8,9 +8,7 @@ class Chat(commands.Cog):
         self.bot = bot
         self.context_menu = app_commands.ContextMenu(
             name="the what",
-            callback=self.the_what,
-            allowed_contexts=app_commands.AppCommandContext(guild=True, dm_channel=True, private_channel=True),
-            allowed_installs=app_commands.AppInstallationType(guild=True, user=True)
+            callback=self.the_what
         )
         self.bot.tree.add_command(self.context_menu)
 
