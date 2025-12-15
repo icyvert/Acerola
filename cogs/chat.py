@@ -10,7 +10,7 @@ class Chat(commands.Cog):
     @app_commands.context_menu(name="the what")
     @app_commands.allowed_installs(guilds=True, users=True)
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-    async def the_what_callback(self, interaction: discord.Interaction, message: discord.Message) -> None:
+    async def the_what(self, interaction: discord.Interaction, message: discord.Message) -> None:
         await interaction.response.send_message("the what")
 
     @commands.Cog.listener()
