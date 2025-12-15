@@ -3,6 +3,7 @@ import os
 from discord.ext import commands
 from discord.ext.commands import Context
 from dotenv import load_dotenv
+from keep_alive import keep_alive
 
 load_dotenv()
 
@@ -32,5 +33,6 @@ class DiscordBot(commands.Bot):
             return
         await super().on_command_error(context, error)
 
+keep_alive()
 bot = DiscordBot()
 bot.run(os.getenv('TOKEN'))
