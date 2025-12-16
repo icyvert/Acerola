@@ -1,10 +1,8 @@
-import discord
-from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import Context
 
 class Ping(commands.Cog):
-    def __init__(self, bot) -> None:
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
     @commands.hybrid_command(
@@ -16,5 +14,5 @@ class Ping(commands.Cog):
         latency = round(self.bot.latency * 1000)
         await context.send(f"{latency}ms")
 
-async def setup(bot) -> None:
+async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Ping(bot))
