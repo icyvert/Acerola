@@ -20,10 +20,12 @@ class Admin(commands.Cog):
                 self.bot.tree.copy_global_to(guild=context.guild)
                 await self.bot.tree.sync(guild=context.guild)
                 await context.send("Synchronized Locally")
-            case 'clear':   
+            case 'clear':
                 self.bot.tree.clear_commands(guild=context.guild)
                 await self.bot.tree.sync(guild=context.guild)
                 await context.send("Cleared Local Commands")
+            case _:
+                await context.send("Invalid Scope")
 
 async def setup(bot: commands.Bot) -> None:
     await bot.add_cog(Admin(bot))

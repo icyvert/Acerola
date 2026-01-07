@@ -7,9 +7,8 @@ class Ping(commands.Cog):
 
     @commands.hybrid_command(
         name="ping",
-        description="Is it alive?"
+        description="「こんにちは世界」"
     )
-    @commands.is_owner()
     async def ping(self, context: Context) -> None:
         latency = round(self.bot.latency * 1000)
         await context.send(f"{latency}ms")
