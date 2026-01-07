@@ -1,6 +1,5 @@
 from discord.ext import commands
 from discord.ext.commands import Context
-from typing import Literal
 
 class Admin(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
@@ -11,7 +10,7 @@ class Admin(commands.Cog):
     )
     @commands.guild_only()
     @commands.is_owner()
-    async def sync(self, context: Context, scope: Literal['global', 'guild', 'clear'] = 'guild') -> None:
+    async def sync(self, context: Context, scope: str = 'guild') -> None:
         match scope:
             case 'global':
                 await self.bot.tree.sync()
