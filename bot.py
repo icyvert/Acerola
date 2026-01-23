@@ -10,38 +10,42 @@ from keep_alive import keep_alive
 
 load_dotenv()
 
+
 class DiscordBot(commands.Bot):
     def __init__(self) -> None:
         intents = discord.Intents.default()
         intents.message_content = True
 
         super().__init__(
-            command_prefix=commands.when_mentioned_or('&'),
+            command_prefix=commands.when_mentioned_or("&"),
             intents=intents,
-            help_command=None
+            help_command=None,
         )
 
-        self.logger = logging.getLogger('bot')
+        self.logger = logging.getLogger("bot")
 
     async def setup_hook(self) -> None:
-        cogs_dir = Path(__file__).resolve().parent / 'cogs'
-        for file in cogs_dir.glob('*.py'):
-            if file.name == '__init__.py':
+        cogs_dir = Path(__file__).resolve().parent / "cogs"
+        for file in cogs_dir.glob("*.py"):
+            if file.name == "__init__.py":
                 continue
-            extension = f'cogs.{file.stem}'
+            extension = f"cogs.{file.stem}"
             try:
                 await self.load_extension(extension)
                 self.logger.info(f"Loaded extension {extension}")
             except Exception as e:
                 self.logger.error(f"Failed to load extension {extension}: {e}")
 
-    async def on_command_error(self, context: Context, error: commands.CommandError) -> None:
+    async def on_command_error(
+        self, context: Context, error: commands.CommandError
+    ) -> None:
         if isinstance(error, commands.CommandNotFound):
             return
         self.logger.error(error)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     keep_alive()
     discord.utils.setup_logging()
     client = DiscordBot()
-    client.run(os.getenv('TOKEN'))
+    client.run(os.getenv("TOKEN"))
