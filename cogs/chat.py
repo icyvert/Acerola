@@ -8,7 +8,12 @@ from discord.ext.commands import Context
 class Chat(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.domains = {"reddit.com": "rxddit.com"}
+        self.domains = {
+            "reddit.com": "vxreddit.com",
+            "instagram.com": "vxinstagram.com",
+            "x.com": "fixupx.com",
+            "twitter.com": "fxtwitter.com",
+        }
         regex = "|".join([re.escape(d) for d in self.domains.keys()])
         self.urls = re.compile(rf"https://(?:www\.)?({regex})/[^\s]+")
 
@@ -26,12 +31,12 @@ class Chat(commands.Cog):
         if match:
             url = match.group(0)
             domain = match.group(1)
-
-            for domain in self.domains:
-                new_domain = self.domains[domain]
-                new_url = url.replace(domain, new_domain)
-                await message.edit(suppress=True)
-                await message.channel.send(new_url)
+            new_url = url.replace(domain, self.domains[domain])
+            try:
+                await message.delete()
+            except Exception:
+                pass
+            await message.channel.send(f"{message.author.mention} shared {new_url}")
 
 
 async def setup(bot: commands.Bot) -> None:
