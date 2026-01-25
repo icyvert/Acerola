@@ -1,8 +1,11 @@
 import discord
 import re
+import logging
 
 from discord.ext import commands
 from discord.ext.commands import Context
+
+logger = logging.getLogger("bot.chat")
 
 
 class Chat(commands.Cog):
@@ -29,14 +32,28 @@ class Chat(commands.Cog):
 
         match = self.urls.search(message.content)
         if match:
+            try:
+                webhooks = await message.channel.webhooks()
+                webhook = discord.utils.get(webhooks, name="Acerola")
+                if webhook is None:
+                    webhook = await message.channel.create_webhook(name="Acerola")
+            except Exception:
+                logger.exception("Webhook failed")
+                return
+
             url = match.group(0)
             domain = match.group(1)
             new_url = url.replace(domain, self.domains[domain])
+
             try:
+                await webhook.send(
+                    content=new_url,
+                    username=message.author.display_name,
+                    avatar_url=message.author.display_avatar.url,
+                )
                 await message.delete()
             except Exception:
-                pass
-            await message.channel.send(f"{message.author.mention} shared {new_url}")
+                logger.exception("Embed failed")
 
 
 async def setup(bot: commands.Bot) -> None:
