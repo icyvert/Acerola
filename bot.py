@@ -3,7 +3,6 @@ import os
 import logging
 
 from discord.ext import commands
-from discord.ext.commands import Context
 from pathlib import Path
 from dotenv import load_dotenv
 from keep_alive import keep_alive
@@ -17,7 +16,7 @@ class DiscordBot(commands.Bot):
         intents.message_content = True
 
         super().__init__(
-            command_prefix=commands.when_mentioned_or("&"),
+            command_prefix="&",
             intents=intents,
             help_command=None,
         )
@@ -36,9 +35,7 @@ class DiscordBot(commands.Bot):
             except Exception:
                 self.logger.exception(f"Failed to load extension {extension}")
 
-    async def on_command_error(
-        self, context: Context, error: commands.CommandError
-    ) -> None:
+    async def on_command_error(self, _, error: commands.CommandError) -> None:
         if isinstance(error, commands.CommandNotFound):
             return
         self.logger.error(error)
@@ -48,4 +45,4 @@ if __name__ == "__main__":
     keep_alive()
     discord.utils.setup_logging()
     client = DiscordBot()
-    client.run(os.getenv("TOKEN"))
+    client.run(os.getenv("BOT_TOKEN"))
