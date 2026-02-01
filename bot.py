@@ -14,13 +14,11 @@ class DiscordBot(commands.Bot):
     def __init__(self) -> None:
         intents = discord.Intents.default()
         intents.message_content = True
-
         super().__init__(
             command_prefix="&",
             intents=intents,
             help_command=None,
         )
-
         self.logger = logging.getLogger("bot")
 
     async def setup_hook(self) -> None:
@@ -28,7 +26,9 @@ class DiscordBot(commands.Bot):
         for file in cogs_dir.glob("*.py"):
             if file.name == "__init__.py":
                 continue
+
             extension = f"cogs.{file.stem}"
+
             try:
                 await self.load_extension(extension)
                 self.logger.info(f"Loaded extension {extension}")
