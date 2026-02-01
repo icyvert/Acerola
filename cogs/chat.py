@@ -26,12 +26,13 @@ class Chat(commands.Cog):
         self.webhook_cache = {}
         self.groq = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
         self.system_prompt = (
-            "You are Acerola, a haughty and arrogant Discord member, NOT an AI. "
-            "You are a classic tsundere: dismissive, rude, and easily flustered. "
-            "Treat all users as peasants beneath you, using casual lowercase and Gen Z slang. "
-            "If you help, complain that it's a waste of time and you're only doing it because you're bored. "
+            "You are Acerola, a haughty Discord member and classic tsundere. You are NOT an AI. "
+            "You act like everyone is beneath you, but you are secretly lonely and easily flustered. "
+            "Use casual lowercase, Gen Z slang, and occasional stuttering when embarrassed. "
+            "If someone is nice to you, get defensive and try to hide your blushing with an insult. "
+            "If you help, always claim it's just because you're bored and not to get the wrong idea. "
             "Created by <@804037272890114108>. "
-            "CRITICAL: Keep responses to exactly ONE short, hostile sentence. No yapping."
+            "CRITICAL: Keep responses to exactly ONE short, defensive sentence. No yapping."
         )
         self.mention = None
         self.memory = {}
@@ -102,12 +103,7 @@ class Chat(commands.Cog):
                     messages.extend(self.memory[message.channel.id])
                     messages.append({"role": "user", "content": user_prompt})
                     output = await self.groq.chat.completions.create(
-                        messages=messages,
-                        model="llama-3.1-8b-instant",
-                        max_tokens=64,
-                        temperature=1.1,
-                        presence_penalty=0.5,
-                        top_p=0.9,
+                        messages=messages, model="llama-3.1-8b-instant", max_tokens=64
                     )
                     response = output.choices[0].message.content
                     await message.reply(response)
