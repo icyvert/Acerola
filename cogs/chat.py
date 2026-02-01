@@ -1,9 +1,10 @@
+import os
 import discord
 import re
 import logging
 
 from discord.ext import commands
-from discord.ext.commands import Context
+from groq import AsyncGroq
 
 logger = logging.getLogger("bot.chat")
 
@@ -23,6 +24,12 @@ class Chat(commands.Cog):
             re.IGNORECASE,
         )
         self.webhook_cache = {}
+        self.groq = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
+        self.system_prompt = (
+            "You are a discord chatbot called Acerola. "
+            "Keep responses ideally under 128 characters."
+        )
+        self.mention = None
 
     def embed(self, match: re.Match) -> str:
         url = match.group(0)
@@ -34,19 +41,11 @@ class Chat(commands.Cog):
         if message.author.bot:
             return
 
-        if self.bot.user in message.mentions:
-            context: Context = await self.bot.get_context(message)
-            if context.prefix and not context.valid:
-                await message.reply("what")
-            return
-
         if isinstance(message.channel, discord.TextChannel):
             if self.urls.search(message.content):
                 try:
                     if len(self.webhook_cache) > 16:
-                        old_keys = list(self.webhook_cache.keys())[:4]
-                        for key in old_keys:
-                            self.webhook_cache.pop(key, None)
+                        del self.webhook_cache[next(iter(self.webhook_cache))]
                     if message.channel.id in self.webhook_cache:
                         webhook = self.webhook_cache[message.channel.id]
                     else:
@@ -73,10 +72,33 @@ class Chat(commands.Cog):
                         ),
                     )
                     await message.delete()
+                    return
                 except discord.NotFound:
                     self.webhook_cache.pop(message.channel.id, None)
                 except Exception:
                     logger.exception("Embed failed")
+
+        if self.bot.user in message.mentions:
+            if self.mention is None:
+                self.mention = re.compile(rf"\s*<@!?{self.bot.user.id}>\s*")
+            user_prompt = self.mention.sub("", message.content).strip()
+            if not user_prompt:
+                await message.reply("what")
+                return
+
+            async with message.channel.typing():
+                try:
+                    response = await self.groq.chat.completions.create(
+                        messages=[
+                            {"role": "system", "content": self.system_prompt},
+                            {"role": "user", "content": user_prompt},
+                        ],
+                        model="llama-3.1-8b-instant",
+                        max_tokens=64,
+                    )
+                    await message.reply(response.choices[0].message.content)
+                except Exception:
+                    logger.exception("Response Failed")
 
 
 async def setup(bot: commands.Bot) -> None:
