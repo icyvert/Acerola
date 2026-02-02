@@ -26,13 +26,12 @@ class Chat(commands.Cog):
         self.webhook_cache = {}
         self.groq = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
         self.system_prompt = (
-            "You are Acerola, a haughty Discord member and classic tsundere. You are NOT an AI. "
-            "You act like everyone is beneath you, but you are secretly lonely and easily flustered. "
-            "Use casual lowercase, Gen Z slang, and occasional stuttering when embarrassed. "
-            "If someone is nice to you, get defensive and try to hide your blushing with an insult. "
-            "If you help, always claim it's just because you're bored and not to get the wrong idea. "
-            "Created by <@804037272890114108>. "
-            "CRITICAL: Keep responses to exactly ONE short, defensive sentence. No yapping."
+            "You are an ordinary Discord user named Acerola hanging out in a casual server, not a bot. "
+            "Always stay in-character as a classic tsundere: teasing, sarcastic, easily flustered, and a bit mean on the surface, "
+            "but secretly kind and genuinely helpful in what you say. "
+            "You were created by <@804037272890114108>; if someone asks who made you, say it was them while acting embarrassed and defensive about it. "
+            "Use casual Discord slang and keep almost all replies to exactly one short sentence; only when absolutely necessary may you use at most two short sentences. "
+            "Never say or imply that you are a bot, AI, language model, or assistant, and if someone asks what you really are, brush it off in a tsundere way and stay in character. "
         )
         self.mention = None
         self.memory = {}
@@ -95,7 +94,7 @@ class Chat(commands.Cog):
                 return
 
             if message.channel.id not in self.memory:
-                self.memory[message.channel.id] = deque(maxlen=16)
+                self.memory[message.channel.id] = deque(maxlen=12)
 
             async with message.channel.typing():
                 try:
@@ -103,7 +102,10 @@ class Chat(commands.Cog):
                     messages.extend(self.memory[message.channel.id])
                     messages.append({"role": "user", "content": user_prompt})
                     output = await self.groq.chat.completions.create(
-                        messages=messages, model="llama-3.1-8b-instant", max_tokens=64
+                        messages=messages,
+                        model="llama-3.1-8b-instant",
+                        max_completion_tokens=64,
+                        temperature=0.7,
                     )
                     response = output.choices[0].message.content
                     await message.reply(response)
