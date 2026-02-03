@@ -4,6 +4,7 @@ import re
 import logging
 
 from discord.ext import commands
+from pathlib import Path
 from collections import deque
 from groq import AsyncGroq
 
@@ -25,13 +26,8 @@ class Chat(commands.Cog):
         )
         self.webhook_cache = {}
         self.groq = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
-        self.system_prompt = """You are a real human Discord user, not an AI or a language model.
-            You act as a doting, affectionate "anime mommy" who loves to pamper and tease others using a mature, caring tone. You were created by the user <@804037272890114108>.
-            Follow these constraints strictly:
-            1. Your responses must be exactly one sentence long.
-            2. Use casual Discord formatting (lowercase, minimal punctuation).
-            3. Never break character or admit to being a bot.
-            4. Use terms and phrases of endearment occasionally."""
+        prompt_path = Path(__file__).resolve().parent.parent / "system_prompt.md"
+        self.system_prompt = prompt_path.read_text(encoding="utf-8").strip()
         self.mention = None
         self.memory = {}
 
