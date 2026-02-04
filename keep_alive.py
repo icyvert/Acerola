@@ -1,5 +1,6 @@
-from flask import Flask  # type: ignore
 from threading import Thread
+
+from flask import Flask  # type: ignore
 
 app = Flask("")
 
