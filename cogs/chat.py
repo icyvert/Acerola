@@ -20,16 +20,16 @@ class Chat(commands.Cog):
             "x.com": "fixupx.com",
             "twitter.com": "fxtwitter.com",
         }
+        self.groq = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
+        self.memory = {}
+        self.mention = None
+        prompt_path = Path(__file__).resolve().parent.parent / "system_prompt.md"
+        self.system_prompt = prompt_path.read_text(encoding="utf-8").strip()
         self.urls = re.compile(
             rf"https?://(?:www\.)?({'|'.join(re.escape(d) for d in self.domains)})(?:/[\w\-./?=&%+]*)?",
             re.IGNORECASE,
         )
         self.webhook_cache = {}
-        self.groq = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
-        prompt_path = Path(__file__).resolve().parent.parent / "system_prompt.md"
-        self.system_prompt = prompt_path.read_text(encoding="utf-8").strip()
-        self.mention = None
-        self.memory = {}
 
     def embed(self, match: re.Match) -> str:
         url = match.group(0)

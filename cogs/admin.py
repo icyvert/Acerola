@@ -16,7 +16,7 @@ class Admin(commands.Cog):
                     await self.bot.tree.sync()
                     await context.send("Synchronized Globally")
                 case "guild":
-                    self.bot.tree.copy_global_to(guild=context.guild)
+                    self.bot.tree.copy_global_to(guild=context.guild)  # type: ignore
                     await self.bot.tree.sync(guild=context.guild)
                     await context.send("Synchronized Locally")
                 case "clear":
