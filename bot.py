@@ -15,12 +15,12 @@ class DiscordBot(commands.Bot):
     def __init__(self) -> None:
         intents = discord.Intents.default()
         intents.message_content = True
+        self.logger = logging.getLogger("bot")
         super().__init__(
             command_prefix="&",
             intents=intents,
             help_command=None,
         )
-        self.logger = logging.getLogger("bot")
 
     async def setup_hook(self) -> None:
         cogs_dir = Path(__file__).resolve().parent / "cogs"
@@ -46,4 +46,4 @@ if __name__ == "__main__":
     keep_alive()
     discord.utils.setup_logging()
     client = DiscordBot()
-    client.run(os.getenv("BOT_TOKEN"))
+    client.run(os.environ["BOT_TOKEN"])
