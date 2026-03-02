@@ -1,4 +1,4 @@
-discord.py
-python-dotenv
-groq
+discord.py==2.6.4
+python-dotenv=1.2.1
+groq=1.0.0
 flask
