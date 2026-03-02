@@ -22,7 +22,7 @@ class Chat(commands.Cog):
             "x.com": "fixupx.com",
             "twitter.com": "fxtwitter.com",
         }
-        self.groq = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
+        self.groq = None
         self.memory = {}
         self.mention = None
         prompt_path = Path(__file__).resolve().parent.parent / "system_prompt.md"
@@ -33,9 +33,12 @@ class Chat(commands.Cog):
         )
         self.webhook_cache = {}
 
+    async def cog_load(self):
+        self.groq = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
+
     def embed(self, match: re.Match) -> str:
         url = match.group(0)
-        domain = match.group(1).lower()
+        domain = match.group(1)
         fixed_url = url.replace(domain, self.domains[domain])
         if domain == "instagram.com":
             fixed_url = fixed_url.replace("www.", "", 1)
@@ -76,49 +79,52 @@ class Chat(commands.Cog):
                             users=True, roles=False, everyone=False
                         ),
                     )
-                    await message.delete()
+                    await message.edit(suppress=True)
                     return
                 except discord.NotFound:
                     self.webhook_cache.pop(message.channel.id, None)
+                    return
                 except Exception:
                     logger.exception("Embed failed")
+                    return
 
-        if self.bot.user and self.bot.user in message.mentions:
-            if self.mention is None:
-                self.mention = re.compile(rf"\s*<@!?{self.bot.user.id}>\s*")
+            if self.groq and self.bot.user and self.bot.user in message.mentions:
+                if self.mention is None:
+                    self.mention = re.compile(rf"\s*<@!?{self.bot.user.id}>\s*")
 
-            user_prompt = self.mention.sub("", message.content).strip()
+                user_prompt = self.mention.sub("", message.content).strip()
 
-            if not user_prompt:
-                await message.reply("what")
-                return
+                if not user_prompt:
+                    await message.reply("what")
+                    return
 
-            if message.channel.id not in self.memory:
-                self.memory[message.channel.id] = deque(maxlen=12)
+                if message.channel.id not in self.memory:
+                    self.memory[message.channel.id] = deque(maxlen=12)
 
-            async with message.channel.typing():
-                try:
-                    messages: List[ChatCompletionMessageParam] = [
-                        {"role": "system", "content": self.system_prompt}
-                    ]
-                    messages.extend(self.memory[message.channel.id])
-                    messages.append({"role": "user", "content": user_prompt})
-                    output = await self.groq.chat.completions.create(
-                        messages=messages,
-                        model="llama-3.1-8b-instant",
-                        max_completion_tokens=64,
-                        temperature=0.8,
-                    )
-                    response = output.choices[0].message.content
-                    await message.reply(response)
-                    self.memory[message.channel.id].append(
-                        {"role": "user", "content": user_prompt}
-                    )
-                    self.memory[message.channel.id].append(
-                        {"role": "assistant", "content": response}
-                    )
-                except Exception:
-                    logger.exception("Response Failed")
+                async with message.channel.typing():
+                    try:
+                        messages: List[ChatCompletionMessageParam] = [
+                            {"role": "system", "content": self.system_prompt}
+                        ]
+                        messages.extend(self.memory[message.channel.id])
+                        messages.append({"role": "user", "content": user_prompt})
+                        output = await self.groq.chat.completions.create(
+                            messages=messages,
+                            model="llama-3.1-8b-instant",
+                            max_completion_tokens=64,
+                            temperature=0.8,
+                        )
+                        response = output.choices[0].message.content
+                        await message.reply(response)
+                        self.memory[message.channel.id].append(
+                            {"role": "user", "content": user_prompt}
+                        )
+                        if response:
+                            self.memory[message.channel.id].append(
+                                {"role": "assistant", "content": response}
+                            )
+                    except Exception:
+                        logger.exception("Response Failed")
 
 
 async def setup(bot: commands.Bot) -> None:
