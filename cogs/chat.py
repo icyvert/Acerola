@@ -16,7 +16,7 @@ class Chat(commands.Cog):
         self.bot = bot
         self.domains = {
             "reddit.com": "vxreddit.com",
-            "instagram.com": "vxinstagram.com",
+            "instagram.com": "instafix.ldez.top",
             "x.com": "fixupx.com",
             "twitter.com": "fxtwitter.com",
         }
@@ -34,7 +34,10 @@ class Chat(commands.Cog):
     def embed(self, match: re.Match) -> str:
         url = match.group(0)
         domain = match.group(1).lower()
-        return url.replace(domain, self.domains[domain])
+        fixed_url = url.replace(domain, self.domains[domain])
+        if domain == "instagram.com":
+            fixed_url = fixed_url.replace("www.", "", 1)
+        return fixed_url
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
