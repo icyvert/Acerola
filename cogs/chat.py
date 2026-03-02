@@ -3,10 +3,12 @@ import os
 import re
 from collections import deque
 from pathlib import Path
+from typing import List
 
 import discord
 from discord.ext import commands
 from groq import AsyncGroq
+from groq.types.chat import ChatCompletionMessageParam
 
 logger = logging.getLogger("bot.chat")
 
@@ -81,7 +83,7 @@ class Chat(commands.Cog):
                 except Exception:
                     logger.exception("Embed failed")
 
-        if self.bot.user in message.mentions:
+        if self.bot.user and self.bot.user in message.mentions:
             if self.mention is None:
                 self.mention = re.compile(rf"\s*<@!?{self.bot.user.id}>\s*")
 
@@ -96,7 +98,9 @@ class Chat(commands.Cog):
 
             async with message.channel.typing():
                 try:
-                    messages = [{"role": "system", "content": self.system_prompt}]
+                    messages: List[ChatCompletionMessageParam] = [
+                        {"role": "system", "content": self.system_prompt}
+                    ]
                     messages.extend(self.memory[message.channel.id])
                     messages.append({"role": "user", "content": user_prompt})
                     output = await self.groq.chat.completions.create(
