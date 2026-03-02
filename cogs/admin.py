@@ -11,14 +11,12 @@ class Admin(commands.Cog):
     @commands.is_owner()
     async def sync(self, context: Context, scope: str = "guild") -> None:
         async with context.typing():
-            if context.guild is None:
-                return
             match scope:
                 case "global":
                     await self.bot.tree.sync()
                     await context.send("Synchronized Globally")
                 case "guild":
-                    self.bot.tree.copy_global_to(guild=context.guild)
+                    self.bot.tree.copy_global_to(guild=context.guild)  # type: ignore
                     await self.bot.tree.sync(guild=context.guild)
                     await context.send("Synchronized Locally")
                 case "clear":
