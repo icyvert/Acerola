@@ -11,7 +11,8 @@ class Admin(commands.Cog):
     @commands.is_owner()
     async def sync(self, context: Context, scope: str = "guild") -> None:
         async with context.typing():
-            assert context.guild is not None
+            if context.guild is None:
+                return
             match scope:
                 case "global":
                     await self.bot.tree.sync()
