@@ -16,21 +16,6 @@ logger = logging.getLogger("bot.chat")
 class Chat(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.domains = {
-            "reddit.com": "vxreddit.com",
-            "instagram.com": "instafix.ldez.top",
-            "x.com": "fixupx.com",
-            "twitter.com": "fxtwitter.com",
-        }
-        self.sites = {
-            "reddit.com": "Reddit",
-            "instagram.com": "Instagram",
-            "x.com": "X",
-            "twitter.com": "X",
-        }
-        self.urls = re.compile(
-            rf"https?://(?:www\.)?({'|'.join(re.escape(d) for d in self.domains)})(?:/[\w\-./?=&%+]*)?"
-        )
         self.cooldown = commands.CooldownMapping.from_cooldown(
             10, 60, commands.BucketType.user
         )
@@ -40,30 +25,12 @@ class Chat(commands.Cog):
         prompt_path = Path(__file__).resolve().parent.parent / "system_prompt.md"
         self.system_prompt = prompt_path.read_text(encoding="utf-8").strip()
 
-    def embed(self, match: re.Match) -> tuple[str, str]:
-        url = match.group(0)
-        domain = match.group(1)
-        fixed_url = url.replace(domain, self.domains[domain], 1)
-        if domain == "instagram.com":
-            fixed_url = fixed_url.replace("www.", "", 1)
-        return fixed_url, domain
-
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
-        if message.author.bot or not message.guild:
+        if not message.guild:
             return
 
-        match = self.urls.search(message.content)
-
-        if match:
-            fixed_url, domain = self.embed(match)
-            await message.reply(
-                f"[{self.sites[domain]}]({fixed_url})", mention_author=False
-            )
-            try:
-                await message.edit(suppress=True)
-            except Exception:
-                pass
+        if message.author.bot:
             return
 
         if self.bot.user in message.mentions:
@@ -93,6 +60,7 @@ class Chat(commands.Cog):
                     messages: List[ChatCompletionMessageParam] = [
                         {"role": "system", "content": self.system_prompt}
                     ]
+
                     messages.extend(self.memory[data])
                     messages.append({"role": "user", "content": user_prompt})
 
