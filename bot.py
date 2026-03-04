@@ -16,14 +16,11 @@ class DiscordBot(commands.Bot):
         intents = discord.Intents.default()
         intents.message_content = True
         self.logger = logging.getLogger("bot")
-        super().__init__(
-            command_prefix="&",
-            intents=intents,
-            help_command=None,
-        )
+        super().__init__(command_prefix="&", intents=intents, help_command=None)
 
     async def setup_hook(self) -> None:
         cogs_dir = Path(__file__).resolve().parent / "cogs"
+
         for file in cogs_dir.glob("*.py"):
             if file.name == "__init__.py":
                 continue
