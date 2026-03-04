@@ -32,8 +32,14 @@ class Utils(commands.Cog):
 
     @app_commands.command(name="fix", description="Social embeds")
     @app_commands.describe(url="Reddit, Instagram or X link")
+    @app_commands.choices(
+        embed=[
+            app_commands.Choice(name="Default", value="default"),
+            app_commands.Choice(name="Alternate", value="alternate"),
+        ]
+    )
     async def fix(
-        self, interaction: discord.Interaction, url: str, embed: str = "Default"
+        self, interaction: discord.Interaction, url: str, embed: str = "default"
     ) -> None:
         match = self.urls.search(url)
 
@@ -46,9 +52,9 @@ class Utils(commands.Cog):
         path = match.group(3) or ""
 
         match embed:
-            case "Default":
+            case "default":
                 fixed_url = f"{protocol}{self.domains[domain]}{path}"
-            case "Alternate":
+            case "alternate":
                 fixed_url = f"{protocol}{self.altdomains[domain]}{path}"
 
         await interaction.response.send_message(f"[{self.sites[domain]}]({fixed_url})")
