@@ -26,7 +26,7 @@ class Admin(commands.Cog):
                 case _:
                     await context.send("Invalid Scope")
 
-    @commands.hybrid_command(name="source", description="Bot Source")
+    @commands.hybrid_command(name="source", description="Bot source")
     async def source(self, context: Context) -> None:
         await context.send("https://github.com/icyvert/Acerola")
 
