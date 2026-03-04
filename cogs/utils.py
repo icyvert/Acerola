@@ -14,6 +14,12 @@ class Utils(commands.Cog):
             "x.com": "fixupx.com",
             "twitter.com": "fxtwitter.com",
         }
+        self.altdomains = {
+            "reddit.com": "rxddit.com",
+            "instagram.com": "vxinstagram.com",
+            "x.com": "fixupx.com",
+            "twitter.com": "fxtwitter.com",
+        }
         self.sites = {
             "reddit.com": "Reddit",
             "instagram.com": "Instagram",
@@ -26,7 +32,9 @@ class Utils(commands.Cog):
 
     @app_commands.command(name="fix", description="Social embeds")
     @app_commands.describe(url="Reddit, Instagram or X link")
-    async def fix(self, interaction: discord.Interaction, url: str) -> None:
+    async def fix(
+        self, interaction: discord.Interaction, url: str, embed: str = "Default"
+    ) -> None:
         match = self.urls.search(url)
 
         if not match:
@@ -36,7 +44,12 @@ class Utils(commands.Cog):
         protocol = match.group(1)
         domain = match.group(2)
         path = match.group(3) or ""
-        fixed_url = f"{protocol}{self.domains[domain]}{path}"
+
+        match embed:
+            case "Default":
+                fixed_url = f"{protocol}{self.domains[domain]}{path}"
+            case "Alternate":
+                fixed_url = f"{protocol}{self.altdomains[domain]}{path}"
 
         await interaction.response.send_message(f"[{self.sites[domain]}]({fixed_url})")
 
