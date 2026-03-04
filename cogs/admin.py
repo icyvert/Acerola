@@ -9,7 +9,7 @@ class Admin(commands.Cog):
     @commands.command(name="sync")
     @commands.guild_only()
     @commands.is_owner()
-    async def sync(self, context: Context, scope: str = "guild") -> None:
+    async def sync(self, context: Context, scope: str = "global") -> None:
         async with context.typing():
             match scope:
                 case "global":
