@@ -16,7 +16,17 @@ class DiscordBot(commands.Bot):
         intents = discord.Intents.default()
         intents.message_content = True
         self.logger = logging.getLogger("bot")
-        super().__init__(command_prefix="&", intents=intents, help_command=None)
+        super().__init__(
+            command_prefix="&",
+            intents=intents,
+            help_command=None,
+            allowed_installs=discord.app_commands.AppInstallationType(
+                guild=True, user=True
+            ),
+            allowed_contexts=discord.app_commands.AppCommandContext(
+                guild=True, dm_channel=True, private_channel=True
+            ),
+        )
 
     async def setup_hook(self) -> None:
         cogs_dir = Path(__file__).resolve().parent / "cogs"
