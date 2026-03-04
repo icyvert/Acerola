@@ -1,8 +1,8 @@
 import re
 
+import discord
 from discord import app_commands
 from discord.ext import commands
-from discord.ext.commands import Context
 
 
 class Utils(commands.Cog):
@@ -14,17 +14,23 @@ class Utils(commands.Cog):
             "x.com": "fixupx.com",
             "twitter.com": "fxtwitter.com",
         }
+        self.sites = {
+            "reddit.com": "Reddit",
+            "instagram.com": "Instagram",
+            "x.com": "X",
+            "twitter.com": "X",
+        }
         self.urls = re.compile(
             rf"(https?://)(?:www\.)?({'|'.join(re.escape(d) for d in self.domains)})(/[\w\-./?=&%+]*)?"
         )
 
-    @commands.hybrid_command(name="fix", description="Social embeds")
+    @app_commands.command(name="fix", description="Social embeds")
     @app_commands.describe(url="Reddit, Instagram or X link")
-    async def fix(self, context: Context, url: str) -> None:
+    async def fix(self, interaction: discord.Interaction, url: str) -> None:
         match = self.urls.search(url)
 
         if not match:
-            await context.send("Invalid link", ephemeral=True)
+            await interaction.response.send_message("Invalid link", ephemeral=True)
             return
 
         protocol = match.group(1)
@@ -32,7 +38,7 @@ class Utils(commands.Cog):
         path = match.group(3) or ""
         fixed_url = f"{protocol}{self.domains[domain]}{path}"
 
-        await context.send(fixed_url)
+        await interaction.response.send_message(f"[{self.sites[domain]}]({fixed_url})")
 
 
 async def setup(bot: commands.Bot) -> None:
