@@ -31,7 +31,7 @@ class Utils(commands.Cog):
         )
 
     @app_commands.command(name="fix", description="Social embeds")
-    @app_commands.describe(url="Reddit, Instagram or X link")
+    @app_commands.describe(url="Instagram, Reddit or X link", embed="Embed provider")
     @app_commands.choices(
         embed=[
             app_commands.Choice(name="Default", value="default"),
