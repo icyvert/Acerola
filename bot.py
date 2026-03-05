@@ -53,4 +53,4 @@ if __name__ == "__main__":
     keep_alive()
     discord.utils.setup_logging()
     client = DiscordBot()
-    client.run(os.getenv("BOT_TOKEN"))  # type: ignore
+    client.run(os.environ["BOT_TOKEN"])
