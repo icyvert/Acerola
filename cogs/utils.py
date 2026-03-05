@@ -12,12 +12,12 @@ class Utils(commands.Cog):
             "reddit.com": "vxreddit.com",
             "instagram.com": "instafix.ldez.top",
             "x.com": "fixupx.com",
-            "twitter.com": "fxtwitter.com",
+            "twitter.com": "fixupx.com",
         }
         self.altdomains = {
             "reddit.com": "rxddit.com",
             "instagram.com": "vxinstagram.com",
-            "x.com": "fixupx.com",
+            "x.com": "fxtwitter.com",
             "twitter.com": "fxtwitter.com",
         }
         self.sites = {
