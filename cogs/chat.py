@@ -21,9 +21,12 @@ class Chat(commands.Cog):
         )
         self.groq = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
         self.memory = {}
-        self.mention = None
         prompt_path = Path(__file__).resolve().parent.parent / "system_prompt.md"
         self.system_prompt = prompt_path.read_text(encoding="utf-8").strip()
+
+    @commands.Cog.listener()
+    async def on_ready(self) -> None:
+        self.mention = re.compile(rf"\s*<@!?{self.bot.user.id}>\s*")  # type: ignore
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
@@ -40,9 +43,6 @@ class Chat(commands.Cog):
             if retry_after:
                 await message.reply(f"Wait {retry_after:.1f}s")
                 return
-
-            if self.mention is None:
-                self.mention = re.compile(rf"\s*<@!?{self.bot.user.id}>\s*")  # type: ignore
 
             user_prompt = self.mention.sub("", message.content).strip()
 
