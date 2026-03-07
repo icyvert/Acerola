@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import List
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 from groq import AsyncGroq
 from groq.types.chat import ChatCompletionMessageParam
@@ -19,6 +20,7 @@ class Chat(commands.Cog):
         self.cooldown = commands.CooldownMapping.from_cooldown(
             10, 60, commands.BucketType.user
         )
+        self.disabled = set()
         self.groq = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
         self.memory = {}
         prompt_path = Path(__file__).resolve().parent.parent / "system_prompt.md"
@@ -28,9 +30,25 @@ class Chat(commands.Cog):
     async def on_ready(self) -> None:
         self.mention = re.compile(rf"\s*<@!?{self.bot.user.id}>\s*")  # type: ignore
 
+    @app_commands.command(name="toggle", description="Toggle AI chat")
+    @commands.guild_only()
+    @commands.is_owner()
+    async def toggle(self, interaction: discord.Interaction) -> None:
+        guild = interaction.guild.id  # type: ignore
+
+        if guild not in self.disabled:
+            self.disabled.add(guild)
+            await interaction.response.send_message("AI chat disabled")
+        else:
+            self.disabled.remove(guild)
+            await interaction.response.send_message("AI chat enabled")
+
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
         if not message.guild:
+            return
+
+        if message.guild.id in self.disabled:
             return
 
         if message.author.bot:
