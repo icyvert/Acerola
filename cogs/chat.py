@@ -23,12 +23,9 @@ class Chat(commands.Cog):
         self.disabled = set()
         self.groq = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
         self.memory = {}
+        self.mention = re.compile(rf"\s*<@!?{self.bot.user.id}>\s*")  # type: ignore
         prompt_path = Path(__file__).resolve().parent.parent / "system_prompt.md"
         self.system_prompt = prompt_path.read_text(encoding="utf-8").strip()
-
-    @commands.Cog.listener()
-    async def on_ready(self) -> None:
-        self.mention = re.compile(rf"\s*<@!?{self.bot.user.id}>\s*")  # type: ignore
 
     @commands.hybrid_command(name="toggle", description="Toggle AI chat")
     @commands.guild_only()
@@ -62,7 +59,7 @@ class Chat(commands.Cog):
                 await message.reply(f"Wait {retry_after:.1f}s")
                 return
 
-            user_prompt = self.mention.sub("", message.content).strip()
+            user_prompt = self.mention.sub("", message.clean_content).strip()
 
             if not user_prompt:
                 await message.reply("what")
@@ -81,6 +78,7 @@ class Chat(commands.Cog):
 
                     messages.extend(self.memory[data])
                     messages.append({"role": "user", "content": user_prompt})
+                    self.memory[data].append({"role": "user", "content": user_prompt})
 
                     output = await self.groq.chat.completions.create(
                         messages=messages,
@@ -95,7 +93,6 @@ class Chat(commands.Cog):
                         return
 
                     await message.reply(response)
-                    self.memory[data].append({"role": "user", "content": user_prompt})
                     self.memory[data].append({"role": "assistant", "content": response})
                 except Exception:
                     logger.exception("Response Failed")
