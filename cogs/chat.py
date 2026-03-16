@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import List
 
 import discord
-from discord import app_commands
 from discord.ext import commands
+from discord.ext.commands import Context
 from groq import AsyncGroq
 from groq.types.chat import ChatCompletionMessageParam
 
@@ -30,18 +30,18 @@ class Chat(commands.Cog):
     async def on_ready(self) -> None:
         self.mention = re.compile(rf"\s*<@!?{self.bot.user.id}>\s*")  # type: ignore
 
-    @app_commands.command(name="toggle", description="Toggle AI chat")
+    @commands.hybrid_command(name="toggle", description="Toggle AI chat")
     @commands.guild_only()
     @commands.is_owner()
-    async def toggle(self, interaction: discord.Interaction) -> None:
-        guild = interaction.guild.id  # type: ignore
+    async def toggle(self, context: Context) -> None:
+        guild = context.guild.id  # type: ignore
 
         if guild not in self.disabled:
             self.disabled.add(guild)
-            await interaction.response.send_message("AI chat disabled")
+            await context.send("AI chat disabled")
         else:
             self.disabled.remove(guild)
-            await interaction.response.send_message("AI chat enabled")
+            await context.send("AI chat enabled")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
@@ -84,7 +84,7 @@ class Chat(commands.Cog):
 
                     output = await self.groq.chat.completions.create(
                         messages=messages,
-                        model="llama-3.1-8b-instant",
+                        model="llama-3.3-70b-versatile",
                         max_completion_tokens=128,
                         temperature=0.8,
                     )
