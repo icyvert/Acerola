@@ -1,8 +1,8 @@
 import re
 
-import discord
 from discord import app_commands
 from discord.ext import commands
+from discord.ext.commands import Context
 
 
 class Utils(commands.Cog):
@@ -30,7 +30,7 @@ class Utils(commands.Cog):
             rf"(https?://)(?:www\.)?({'|'.join(re.escape(d) for d in self.domains)})(/[\w\-./?=&%+]*)?"
         )
 
-    @app_commands.command(name="fix", description="Social embeds")
+    @commands.hybrid_command(name="fix", description="Social embeds")
     @app_commands.describe(url="Instagram, Reddit or X link", embed="Embed provider")
     @app_commands.choices(
         embed=[
@@ -38,26 +38,26 @@ class Utils(commands.Cog):
             app_commands.Choice(name="Alternate", value="alternate"),
         ]
     )
-    async def fix(
-        self, interaction: discord.Interaction, url: str, embed: str = "default"
-    ) -> None:
+    async def fix(self, context: Context, url: str, embed: str = "default") -> None:
         match = self.urls.search(url)
 
         if not match:
-            await interaction.response.send_message("Invalid link", ephemeral=True)
+            await context.send("Invalid link", ephemeral=True)
             return
 
         protocol = match.group(1)
         domain = match.group(2)
         path = match.group(3) or ""
 
-        match embed:
+        match embed.lower():
             case "default":
                 fixed_url = f"{protocol}{self.domains[domain]}{path}"
             case "alternate":
                 fixed_url = f"{protocol}{self.altdomains[domain]}{path}"
+            case _:
+                fixed_url = f"{protocol}{self.domains[domain]}{path}"
 
-        await interaction.response.send_message(f"[{self.sites[domain]}]({fixed_url})")
+        await context.send(f"[{self.sites[domain]}]({fixed_url})")
 
 
 async def setup(bot: commands.Bot) -> None:
