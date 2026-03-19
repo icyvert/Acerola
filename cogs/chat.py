@@ -33,12 +33,12 @@ class Chat(commands.Cog):
     async def toggle(self, context: Context) -> None:
         guild = context.guild.id  # type: ignore
 
-        if guild not in self.disabled:
-            self.disabled.add(guild)
-            await context.send("AI chat disabled")
-        else:
+        if guild in self.disabled:
             self.disabled.remove(guild)
             await context.send("AI chat enabled")
+            return
+        self.disabled.add(guild)
+        await context.send("AI chat disabled")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
