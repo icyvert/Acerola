@@ -31,6 +31,12 @@ class Utils(commands.Cog):
             rf"(https?://)(?:www\.)?({'|'.join(re.escape(d) for d in self.domains)})(/[\w\-./?=&%+]*)?"
         )
 
+    def url_extract(self, match: re.Match) -> tuple[str, str, str]:
+        protocol = match.group(1)
+        domain = match.group(2)
+        path = match.group(3) or ""
+        return protocol, domain, path
+
     @commands.hybrid_command(name="fix", description="Social embeds")
     @app_commands.describe(url="Instagram, Reddit or X link", embed="Embed provider")
     @app_commands.choices(
@@ -46,9 +52,7 @@ class Utils(commands.Cog):
             await context.send("Invalid link", ephemeral=True)
             return
 
-        protocol = match.group(1)
-        domain = match.group(2)
-        path = match.group(3) or ""
+        protocol, domain, path = self.url_extract(match)
 
         match embed.lower():
             case "default":
@@ -70,9 +74,7 @@ class Utils(commands.Cog):
         if not match:
             return
 
-        protocol = match.group(1)
-        domain = match.group(2)
-        path = match.group(3) or ""
+        protocol, domain, path = self.url_extract(match)
         fixed_url = f"{protocol}{self.domains[domain]}{path}"
 
         try:
