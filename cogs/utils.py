@@ -31,11 +31,18 @@ class Utils(commands.Cog):
             rf"(https?://)(?:www\.)?({'|'.join(re.escape(d) for d in self.domains)})(/[\w\-./?=&%+]*)?"
         )
 
-    def url_extract(self, match: re.Match) -> tuple[str, str, str]:
+    def embed(self, match: re.Match, embed: str) -> str:
         protocol = match.group(1)
         domain = match.group(2)
         path = match.group(3) or ""
-        return protocol, domain, path
+
+        if embed.lower() == "alternate":
+            fixed_url = f"{protocol}{self.altdomains[domain]}{path}"
+        else:
+            fixed_url = f"{protocol}{self.domains[domain]}{path}"
+
+        response = f"[{self.sites[domain]}]({fixed_url})"
+        return response
 
     @commands.hybrid_command(name="fix", description="Social embeds")
     @app_commands.describe(url="Instagram, Reddit or X link", embed="Embed provider")
@@ -52,17 +59,8 @@ class Utils(commands.Cog):
             await context.send("Invalid link", ephemeral=True)
             return
 
-        protocol, domain, path = self.url_extract(match)
-
-        match embed.lower():
-            case "default":
-                fixed_url = f"{protocol}{self.domains[domain]}{path}"
-            case "alternate":
-                fixed_url = f"{protocol}{self.altdomains[domain]}{path}"
-            case _:
-                fixed_url = f"{protocol}{self.domains[domain]}{path}"
-
-        await context.send(f"[{self.sites[domain]}]({fixed_url})")
+        response = self.embed(match, embed)
+        await context.send(response)
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
@@ -74,17 +72,13 @@ class Utils(commands.Cog):
         if not match:
             return
 
-        protocol, domain, path = self.url_extract(match)
-        fixed_url = f"{protocol}{self.domains[domain]}{path}"
-
         try:
             await message.edit(suppress=True)
         except Exception:
             pass
 
-        await message.reply(
-            f"[{self.sites[domain]}]({fixed_url})", mention_author=False
-        )
+        response = self.embed(match, "default")
+        await message.reply(response, mention_author=False)
 
 
 async def setup(bot: commands.Bot) -> None:
