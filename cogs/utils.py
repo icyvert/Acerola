@@ -64,9 +64,6 @@ class Utils(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
-        if message.author.bot:
-            return
-
         match = self.urls.search(message.content)
 
         if not match:
