@@ -1,5 +1,6 @@
 import re
 
+import discord
 from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import Context
@@ -10,13 +11,13 @@ class Utils(commands.Cog):
         self.bot = bot
         self.domains = {
             "reddit.com": "vxreddit.com",
-            "instagram.com": "instafix.ldez.top",
+            "instagram.com": "vxinstagram.com",
             "x.com": "fixupx.com",
             "twitter.com": "fixupx.com",
         }
         self.altdomains = {
             "reddit.com": "rxddit.com",
-            "instagram.com": "vxinstagram.com",
+            "instagram.com": "instafix.ldez.top",
             "x.com": "fxtwitter.com",
             "twitter.com": "fxtwitter.com",
         }
@@ -58,6 +59,30 @@ class Utils(commands.Cog):
                 fixed_url = f"{protocol}{self.domains[domain]}{path}"
 
         await context.send(f"[{self.sites[domain]}]({fixed_url})")
+
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message) -> None:
+        if message.author.bot:
+            return
+
+        match = self.urls.search(message.content)
+
+        if not match:
+            return
+
+        protocol = match.group(1)
+        domain = match.group(2)
+        path = match.group(3) or ""
+        fixed_url = f"{protocol}{self.domains[domain]}{path}"
+
+        try:
+            await message.edit(suppress=True)
+        except Exception:
+            pass
+
+        await message.reply(
+            f"[{self.sites[domain]}]({fixed_url})", mention_author=False
+        )
 
 
 async def setup(bot: commands.Bot) -> None:
