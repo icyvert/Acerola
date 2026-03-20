@@ -20,6 +20,8 @@ class Chat(commands.Cog):
         self.disabled = set()
         self.groq = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
         self.memory = {}
+
+    async def cog_load(self) -> None:
         self.mention = re.compile(rf"\s*<@!?{self.bot.user.id}>\s*")  # type: ignore
         prompt_path = Path(__file__).resolve().parent.parent / "system_prompt.md"
         self.system_prompt = prompt_path.read_text(encoding="utf-8").strip()
@@ -75,7 +77,6 @@ class Chat(commands.Cog):
 
                     messages.extend(self.memory[data])
                     messages.append({"role": "user", "content": user_prompt})
-                    self.memory[data].append({"role": "user", "content": user_prompt})
 
                     output = await self.groq.chat.completions.create(
                         messages=messages,
@@ -86,11 +87,11 @@ class Chat(commands.Cog):
                     response = output.choices[0].message.content
 
                     if not response:
-                        await message.reply("no comment")
                         return
 
-                    await message.reply(response)
+                    self.memory[data].append({"role": "user", "content": user_prompt})
                     self.memory[data].append({"role": "assistant", "content": response})
+                    await message.reply(response)
                 except Exception:
                     await message.channel.send("Response Failed")
 

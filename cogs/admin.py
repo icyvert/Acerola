@@ -11,21 +11,20 @@ class Admin(commands.Cog):
     @commands.guild_only()
     @commands.is_owner()
     async def sync(self, context: Context, scope: str = "global") -> None:
-        async with context.typing():
-            match scope:
-                case "global":
-                    await self.bot.tree.sync()
-                    await context.send("Synchronized Globally")
-                case "guild":
-                    self.bot.tree.copy_global_to(guild=context.guild)  # type: ignore
-                    await self.bot.tree.sync(guild=context.guild)
-                    await context.send("Synchronized Locally")
-                case "clear":
-                    self.bot.tree.clear_commands(guild=context.guild)
-                    await self.bot.tree.sync(guild=context.guild)
-                    await context.send("Cleared Local Commands")
-                case _:
-                    await context.send("Invalid Scope")
+        match scope:
+            case "global":
+                await self.bot.tree.sync()
+                await context.send("Synchronized Globally")
+            case "guild":
+                self.bot.tree.copy_global_to(guild=context.guild)  # type: ignore
+                await self.bot.tree.sync(guild=context.guild)
+                await context.send("Synchronized Locally")
+            case "clear":
+                self.bot.tree.clear_commands(guild=context.guild)
+                await self.bot.tree.sync(guild=context.guild)
+                await context.send("Cleared Local Commands")
+            case _:
+                await context.send("Invalid Scope")
 
     @commands.hybrid_command(name="source", description="Bot source")
     @app_commands.allowed_installs(guilds=True, users=True)

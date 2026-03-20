@@ -28,17 +28,18 @@ class Fun(commands.Cog):
     async def subreddit(self, context: Context, sub: str) -> None:
         self.sub = sub.lower().strip()
         self.stats[self.sub] = 0
-        await context.send("Subreddit set")
+        await context.send(f"Subreddit set to r/{self.sub}")
 
     @commands.hybrid_command(name="reddit", description="Reddit posts")
     @commands.guild_only()
     async def reddit(self, context: Context) -> None:
-        subreddit = self.sub
-
-        if not subreddit:
+        if not self.sub:
             await context.send("Subreddit not set", ephemeral=True)
             return
 
+        await context.defer()
+
+        subreddit = self.sub
         posts = []
 
         if subreddit in self.cache and (time.time() - self.cache[subreddit][0] < 600):
@@ -76,11 +77,10 @@ class Fun(commands.Cog):
         if current >= len(posts):
             current = 0
 
-        permalink = posts[current].get("permalink")
-        full_link = f"https://www.vxreddit.com{permalink}"
+        post = f"https://www.vxreddit.com{posts[current].get('permalink')}"
         self.stats[subreddit] = current + 1
 
-        await context.send(f"[r/{subreddit}]({full_link})")
+        await context.send(f"[r/{subreddit}]({post})")
 
 
 async def setup(bot: commands.Bot) -> None:

@@ -28,7 +28,7 @@ class Utils(commands.Cog):
             "twitter.com": "X",
         }
         self.urls = re.compile(
-            rf"(https?://)(?:www\.)?({'|'.join(re.escape(d) for d in self.domains)})(/[\w\-./?=&%+]*)?"
+            rf"(https?://)(?:[\w-]+\.)?({'|'.join(re.escape(d) for d in self.domains)})(/[\w\-./?=&%+]*)?"
         )
 
     def embed(self, match: re.Match, embed: str) -> str:
@@ -61,6 +61,7 @@ class Utils(commands.Cog):
             await context.send("Invalid link", ephemeral=True)
             return
 
+        await context.defer()
         response = self.embed(match, embed)
         await context.send(response)
 
