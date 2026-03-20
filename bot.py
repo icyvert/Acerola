@@ -6,8 +6,6 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
-from keep_alive import keep_alive
-
 load_dotenv()
 
 
@@ -44,6 +42,5 @@ class DiscordBot(commands.Bot):
 
 if __name__ == "__main__":
     discord.utils.setup_logging()
-    keep_alive()
     client = DiscordBot()
     client.run(os.environ["BOT_TOKEN"])
