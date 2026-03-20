@@ -1,4 +1,3 @@
-import logging
 import os
 import re
 from collections import deque
@@ -10,8 +9,6 @@ from discord.ext import commands
 from discord.ext.commands import Context
 from groq import AsyncGroq
 from groq.types.chat import ChatCompletionMessageParam
-
-logger = logging.getLogger("bot.chat")
 
 
 class Chat(commands.Cog):
@@ -95,7 +92,7 @@ class Chat(commands.Cog):
                     await message.reply(response)
                     self.memory[data].append({"role": "assistant", "content": response})
                 except Exception:
-                    logger.exception("Response Failed")
+                    await message.channel.send("Response Failed")
 
 
 async def setup(bot: commands.Bot) -> None:
