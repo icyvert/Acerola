@@ -1,3 +1,4 @@
+from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import Context
 
@@ -27,6 +28,8 @@ class Admin(commands.Cog):
                     await context.send("Invalid Scope")
 
     @commands.hybrid_command(name="source", description="Bot source")
+    @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     async def source(self, context: Context) -> None:
         await context.send("https://github.com/icyvert/Acerola")
 

@@ -23,6 +23,7 @@ class Fun(commands.Cog):
 
     @commands.hybrid_command(name="subreddit", description="Set subreddit")
     @app_commands.describe(sub="Subreddit name")
+    @commands.guild_only()
     @commands.is_owner()
     async def subreddit(self, context: Context, sub: str) -> None:
         self.sub = sub.lower().strip()

@@ -52,6 +52,8 @@ class Utils(commands.Cog):
             app_commands.Choice(name="Alternate", value="alternate"),
         ]
     )
+    @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     async def fix(self, context: Context, url: str, embed: str = "default") -> None:
         match = self.urls.search(url)
 
@@ -64,6 +66,9 @@ class Utils(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
+        if message.author.bot:
+            return
+
         match = self.urls.search(message.content)
 
         if not match:

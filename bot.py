@@ -16,17 +16,8 @@ class DiscordBot(commands.Bot):
         intents = discord.Intents.default()
         intents.message_content = True
         self.logger = logging.getLogger("bot")
-        super().__init__(
-            command_prefix="&",
-            intents=intents,
-            help_command=None,
-            allowed_installs=discord.app_commands.AppInstallationType(
-                guild=True, user=True
-            ),
-            allowed_contexts=discord.app_commands.AppCommandContext(
-                guild=True, dm_channel=True, private_channel=True
-            ),
-        )
+
+        super().__init__(command_prefix="&", intents=intents, help_command=None)
 
     async def setup_hook(self) -> None:
         cogs_dir = Path(__file__).resolve().parent / "cogs"
@@ -43,14 +34,16 @@ class DiscordBot(commands.Bot):
             except Exception:
                 self.logger.exception(f"Failed to load extension {extension}")
 
-    async def on_command_error(self, _, error: commands.CommandError) -> None:
+    async def on_command_error(
+        self, context: commands.Context, error: commands.CommandError
+    ) -> None:
         if isinstance(error, commands.CommandNotFound):
             return
-        self.logger.error(error)
+        self.logger.error(f"Error in command {context.command}: {error}")
 
 
 if __name__ == "__main__":
-    keep_alive()
     discord.utils.setup_logging()
+    keep_alive()
     client = DiscordBot()
     client.run(os.environ["BOT_TOKEN"])
