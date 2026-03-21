@@ -22,15 +22,20 @@ class Chat(commands.Cog):
         self.memory = {}
 
     async def cog_load(self) -> None:
-        self.mention = re.compile(rf"\s*<@!?{self.bot.user.id}>\s*")  # type: ignore
         prompt_path = Path(__file__).resolve().parent.parent / "system_prompt.md"
         self.system_prompt = prompt_path.read_text(encoding="utf-8").strip()
+
+    @commands.Cog.listener()
+    async def on_ready(self) -> None:
+        assert self.bot.user is not None
+        self.mention = re.compile(rf"\s*<@!?{self.bot.user.id}>\s*")
 
     @commands.hybrid_command(name="toggle", description="Toggle AI chat")
     @commands.guild_only()
     @commands.is_owner()
     async def toggle(self, context: Context) -> None:
-        guild = context.guild.id  # type: ignore
+        assert context.guild is not None
+        guild = context.guild.id
 
         if guild in self.disabled:
             self.disabled.remove(guild)
@@ -52,13 +57,14 @@ class Chat(commands.Cog):
 
         if self.bot.user in message.mentions:
             bucket = self.cooldown.get_bucket(message)
-            retry_after = bucket.update_rate_limit()  # type: ignore
+            assert bucket is not None
+            retry_after = bucket.update_rate_limit()
 
             if retry_after:
                 await message.reply(f"Wait {retry_after:.1f}s")
                 return
 
-            user_prompt = self.mention.sub("", message.clean_content).strip()
+            user_prompt = self.mention.sub("", message.content).strip()
 
             if not user_prompt:
                 await message.reply("what")

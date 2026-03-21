@@ -37,10 +37,9 @@ class DiscordBot(commands.Bot):
     ) -> None:
         if isinstance(error, commands.CommandNotFound):
             return
-        self.logger.error(f"Error in command {context.command}: {error}")
+        self.logger.error(f"Exception in command '{context.command}': {error}")
 
 
 if __name__ == "__main__":
-    discord.utils.setup_logging()
     client = DiscordBot()
     client.run(os.environ["BOT_TOKEN"])

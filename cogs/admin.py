@@ -1,3 +1,5 @@
+from typing import Literal
+
 from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import Context
@@ -10,21 +12,23 @@ class Admin(commands.Cog):
     @commands.command(name="sync")
     @commands.guild_only()
     @commands.is_owner()
-    async def sync(self, context: Context, scope: str = "global") -> None:
-        match scope:
-            case "global":
-                await self.bot.tree.sync()
-                await context.send("Synchronized Globally")
-            case "guild":
-                self.bot.tree.copy_global_to(guild=context.guild)  # type: ignore
-                await self.bot.tree.sync(guild=context.guild)
-                await context.send("Synchronized Locally")
-            case "clear":
-                self.bot.tree.clear_commands(guild=context.guild)
-                await self.bot.tree.sync(guild=context.guild)
-                await context.send("Cleared Local Commands")
-            case _:
-                await context.send("Invalid Scope")
+    async def sync(
+        self, context: Context, scope: Literal["global", "guild", "clear"] = "global"
+    ) -> None:
+        async with context.typing():
+            assert context.guild is not None
+            match scope:
+                case "global":
+                    await self.bot.tree.sync()
+                    await context.send("Synchronized Globally")
+                case "guild":
+                    self.bot.tree.copy_global_to(guild=context.guild)
+                    await self.bot.tree.sync(guild=context.guild)
+                    await context.send("Synchronized Locally")
+                case "clear":
+                    self.bot.tree.clear_commands(guild=context.guild)
+                    await self.bot.tree.sync(guild=context.guild)
+                    await context.send("Cleared Local Commands")
 
     @commands.hybrid_command(name="source", description="Bot source")
     @app_commands.allowed_installs(guilds=True, users=True)
