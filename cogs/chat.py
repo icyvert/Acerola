@@ -55,51 +55,56 @@ class Chat(commands.Cog):
         if message.author.bot:
             return
 
-        if self.bot.user in message.mentions:
-            bucket = self.cooldown.get_bucket(message)
-            assert bucket is not None
-            retry_after = bucket.update_rate_limit()
+        if self.bot.user not in message.mentions:
+            return
 
-            if retry_after:
-                await message.reply(f"Wait {retry_after:.1f}s")
-                return
+        if not self.mention.search(message.content):
+            return
 
-            user_prompt = self.mention.sub("", message.content).strip()
+        bucket = self.cooldown.get_bucket(message)
+        assert bucket is not None
+        retry_after = bucket.update_rate_limit()
 
-            if not user_prompt:
-                await message.reply("what")
-                return
+        if retry_after:
+            await message.reply(f"Wait {retry_after:.1f}s")
+            return
 
-            data = (message.channel.id, message.author.id)
+        user_prompt = self.mention.sub("", message.content).strip()
 
-            if data not in self.memory:
-                self.memory[data] = deque(maxlen=16)
+        if not user_prompt:
+            await message.reply("what")
+            return
 
-            async with message.channel.typing():
-                try:
-                    messages: List[ChatCompletionMessageParam] = [
-                        {"role": "system", "content": self.system_prompt}
-                    ]
+        data = (message.channel.id, message.author.id)
 
-                    messages.extend(self.memory[data])
-                    messages.append({"role": "user", "content": user_prompt})
+        if data not in self.memory:
+            self.memory[data] = deque(maxlen=16)
 
-                    output = await self.groq.chat.completions.create(
-                        messages=messages,
-                        model="llama-3.3-70b-versatile",
-                        max_completion_tokens=128,
-                        temperature=0.8,
-                    )
-                    response = output.choices[0].message.content
+        async with message.channel.typing():
+            try:
+                messages: List[ChatCompletionMessageParam] = [
+                    {"role": "system", "content": self.system_prompt}
+                ]
 
-                    if not response:
-                        return
+                messages.extend(self.memory[data])
+                messages.append({"role": "user", "content": user_prompt})
 
-                    self.memory[data].append({"role": "user", "content": user_prompt})
-                    self.memory[data].append({"role": "assistant", "content": response})
-                    await message.reply(response)
-                except Exception:
-                    await message.channel.send("Response Failed")
+                output = await self.groq.chat.completions.create(
+                    messages=messages,
+                    model="llama-3.3-70b-versatile",
+                    max_completion_tokens=128,
+                    temperature=0.8,
+                )
+                response = output.choices[0].message.content
+
+                if not response:
+                    return
+
+                self.memory[data].append({"role": "user", "content": user_prompt})
+                self.memory[data].append({"role": "assistant", "content": response})
+                await message.reply(response)
+            except Exception:
+                await message.channel.send("Response Failed")
 
 
 async def setup(bot: commands.Bot) -> None:

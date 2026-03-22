@@ -80,7 +80,7 @@ class Utils(commands.Cog):
             pass
 
         response = self.embed(match, "default")
-        await message.reply(response, mention_author=False)
+        await message.channel.send(response, mention_author=False)
 
 
 async def setup(bot: commands.Bot) -> None:
