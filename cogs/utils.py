@@ -11,14 +11,14 @@ class Utils(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.domains = {
-            "reddit.com": "vxreddit.com",
-            "instagram.com": "vxinstagram.com",
+            "reddit.com": "redditez.com",
+            "instagram.com": "instafix.ldez.top",
             "x.com": "fixupx.com",
             "twitter.com": "fixupx.com",
         }
         self.altdomains = {
             "reddit.com": "rxddit.com",
-            "instagram.com": "instafix.ldez.top",
+            "instagram.com": "kkinstagram.com",
             "x.com": "fxtwitter.com",
             "twitter.com": "fxtwitter.com",
         }
