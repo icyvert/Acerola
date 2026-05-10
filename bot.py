@@ -6,8 +6,6 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
-load_dotenv()
-
 
 class DiscordBot(commands.Bot):
     def __init__(self) -> None:
@@ -19,16 +17,17 @@ class DiscordBot(commands.Bot):
 
     async def setup_hook(self) -> None:
         cogs_dir = Path(__file__).resolve().parent / "cogs"
+        extensions = (
+            f"cogs.{cog.stem}"
+            for cog in cogs_dir.glob("*.py")
+            if cog.name != "__init__.py"
+        )
 
-        for file in cogs_dir.glob("*.py"):
-            if file.name == "__init__.py":
-                continue
-
-            extension = f"cogs.{file.stem}"
-
+        for extension in extensions:
             try:
                 await self.load_extension(extension)
                 self.logger.info(f"Loaded extension {extension}")
+
             except Exception:
                 self.logger.exception(f"Failed to load extension {extension}")
 
@@ -37,9 +36,10 @@ class DiscordBot(commands.Bot):
     ) -> None:
         if isinstance(error, commands.CommandNotFound):
             return
+
         self.logger.error(f"Exception in command '{context.command}': {error}")
 
 
 if __name__ == "__main__":
-    client = DiscordBot()
-    client.run(os.environ["BOT_TOKEN"])
+    load_dotenv()
+    DiscordBot().run(os.environ["BOT_TOKEN"])
