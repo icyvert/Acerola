@@ -27,7 +27,6 @@ class DiscordBot(commands.Bot):
             try:
                 await self.load_extension(extension)
                 self.logger.info(f"Loaded extension {extension}")
-
             except Exception:
                 self.logger.exception(f"Failed to load extension {extension}")
 

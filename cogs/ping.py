@@ -12,6 +12,7 @@ class Ping(commands.Cog):
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     async def ping(self, context: Context) -> None:
         latency = round(self.bot.latency * 1000)
+
         await context.send(f"{latency}ms")
 
 

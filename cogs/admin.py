@@ -17,14 +17,17 @@ class Admin(commands.Cog):
     ) -> None:
         async with context.typing():
             assert context.guild is not None
+
             match scope:
                 case "global":
                     await self.bot.tree.sync()
                     await context.send("Synchronized Globally")
+
                 case "guild":
                     self.bot.tree.copy_global_to(guild=context.guild)
                     await self.bot.tree.sync(guild=context.guild)
                     await context.send("Synchronized Locally")
+
                 case "clear":
                     self.bot.tree.clear_commands(guild=context.guild)
                     await self.bot.tree.sync(guild=context.guild)
