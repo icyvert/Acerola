@@ -18,17 +18,14 @@ class Chat(commands.Cog):
             10, 60, commands.BucketType.user
         )
         self.disabled = set()
-        self.groq = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
         self.memory = {}
 
     async def cog_load(self) -> None:
-        prompt_path = Path(__file__).resolve().parent.parent / "system_prompt.md"
-        self.system_prompt = prompt_path.read_text(encoding="utf-8").strip()
-
-    @commands.Cog.listener()
-    async def on_ready(self) -> None:
+        self.groq = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
         assert self.bot.user is not None
         self.mention = re.compile(rf"\s*<@!?{self.bot.user.id}>\s*")
+        prompt_path = Path(__file__).resolve().parent.parent / "system_prompt.md"
+        self.system_prompt = prompt_path.read_text(encoding="utf-8").strip()
 
     @commands.hybrid_command(name="toggle", description="Toggle AI chat")
     @commands.guild_only()
@@ -41,21 +38,16 @@ class Chat(commands.Cog):
             self.disabled.remove(guild)
             await context.send("AI chat enabled")
             return
+
         self.disabled.add(guild)
         await context.send("AI chat disabled")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
-        if not message.guild:
-            return
-
-        if message.guild.id in self.disabled:
+        if not message.guild or message.guild.id in self.disabled:
             return
 
         if message.author.bot:
-            return
-
-        if self.bot.user not in message.mentions:
             return
 
         if not self.mention.search(message.content):
@@ -66,7 +58,7 @@ class Chat(commands.Cog):
         retry_after = bucket.update_rate_limit()
 
         if retry_after:
-            await message.reply(f"Wait {retry_after:.1f}s")
+            await message.reply(f"Wait {retry_after:.1f}s", delete_after=3.0)
             return
 
         user_prompt = self.mention.sub("", message.content).strip()
@@ -89,6 +81,7 @@ class Chat(commands.Cog):
                 messages.extend(self.memory[data])
                 messages.append({"role": "user", "content": user_prompt})
 
+                assert self.groq is not None
                 output = await self.groq.chat.completions.create(
                     messages=messages,
                     model="llama-3.3-70b-versatile",
