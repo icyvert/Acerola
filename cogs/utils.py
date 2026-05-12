@@ -11,22 +11,10 @@ class Utils(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.domains = {
-            "reddit.com": "redditez.com",
-            "instagram.com": "instafix.ldez.top",
-            "x.com": "fixupx.com",
-            "twitter.com": "fixupx.com",
-        }
-        self.altdomains = {
-            "reddit.com": "rxddit.com",
-            "instagram.com": "kkinstagram.com",
-            "x.com": "fxtwitter.com",
-            "twitter.com": "fxtwitter.com",
-        }
-        self.sites = {
-            "reddit.com": "Reddit",
-            "instagram.com": "Instagram",
-            "x.com": "X",
-            "twitter.com": "X",
+            "reddit.com": ("Reddit", "redditez.com", "rxddit.com"),
+            "instagram.com": ("Instagram", "instafix.ldez.top", "kkinstagram.com"),
+            "x.com": ("X", "fixupx.com", "fxtwitter.com"),
+            "twitter.com": ("X", "fixupx.com", "fxtwitter.com"),
         }
         self.urls = re.compile(
             rf"(https?://)(?:[\w-]+\.)?({'|'.join(re.escape(d) for d in self.domains)})(/[\w\-./?=&%+]*)?"
@@ -36,13 +24,9 @@ class Utils(commands.Cog):
         protocol = match.group(1)
         domain = match.group(2)
         path = match.group(3) or ""
-
-        if provider.lower() == "alternate":
-            fixed_url = f"{protocol}{self.altdomains[domain]}{path}"
-        else:
-            fixed_url = f"{protocol}{self.domains[domain]}{path}"
-
-        response = f"[{self.sites[domain]}]({fixed_url})"
+        index = 2 if provider.lower() == "alternate" else 1
+        fixed_url = f"{protocol}{self.domains[domain][index]}{path}"
+        response = f"[{self.domains[domain][0]}]({fixed_url})"
         return response
 
     @commands.hybrid_command(name="fix", description="Social embeds")
@@ -67,6 +51,9 @@ class Utils(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
         if message.author.bot:
+            return
+
+        if message.content.startswith("&"):
             return
 
         match = self.urls.search(message.content)
