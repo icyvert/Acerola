@@ -16,6 +16,7 @@ class Chat(commands.Cog):
         self.bot = bot
         self.disabled = set()
         self.memory = {}
+        self.messages = deque(maxlen=32)
 
     async def cog_load(self) -> None:
         self.cooldown = commands.CooldownMapping.from_cooldown(
@@ -50,7 +51,13 @@ class Chat(commands.Cog):
         if message.author.bot:
             return
 
-        if not self.mention.search(message.content):
+        mention = self.mention.search(message.content)
+
+        reply = False
+        if message.reference:
+            reply = message.reference.message_id in self.messages
+
+        if not (mention or reply):
             return
 
         bucket = self.cooldown.get_bucket(message)
@@ -95,7 +102,8 @@ class Chat(commands.Cog):
 
                 self.memory[data].append({"role": "user", "content": user_prompt})
                 self.memory[data].append({"role": "assistant", "content": response})
-                await message.reply(response)
+                msg = await message.reply(response)
+                self.messages.append(msg.id)
             except Exception:
                 await message.channel.send("Response Failed")
 

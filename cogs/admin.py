@@ -22,7 +22,7 @@ class Admin(commands.Cog):
             if not user_input.strip():
                 continue
 
-            if user_input.startswith("/channel "):
+            if user_input.startswith("/c "):
                 self.channel_id = int(user_input.split()[1])
                 continue
 
