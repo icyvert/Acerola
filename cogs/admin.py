@@ -1,5 +1,7 @@
+import asyncio
 from typing import Literal
 
+import discord
 from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import Context
@@ -8,6 +10,30 @@ from discord.ext.commands import Context
 class Admin(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+        self.channel_id = None
+
+    async def cog_load(self):
+        self.console = self.bot.loop.create_task(self.console_chat())
+
+    async def console_chat(self):
+        while not self.bot.is_closed():
+            user_input = await asyncio.to_thread(input, "")
+
+            if not user_input.strip():
+                continue
+
+            if user_input.startswith("/channel "):
+                self.channel_id = int(user_input.split()[1])
+                continue
+
+            if self.channel_id:
+                channel = self.bot.get_channel(self.channel_id)
+
+                if isinstance(channel, discord.TextChannel):
+                    await channel.send(user_input)
+                    continue
+
+                print("Invalid")
 
     @commands.command(name="sync")
     @commands.guild_only()

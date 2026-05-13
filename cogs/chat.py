@@ -14,13 +14,13 @@ from groq.types.chat import ChatCompletionMessageParam
 class Chat(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.cooldown = commands.CooldownMapping.from_cooldown(
-            10, 60, commands.BucketType.user
-        )
         self.disabled = set()
         self.memory = {}
 
     async def cog_load(self) -> None:
+        self.cooldown = commands.CooldownMapping.from_cooldown(
+            10, 60, commands.BucketType.user
+        )
         self.groq = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
         assert self.bot.user is not None
         self.mention = re.compile(rf"\s*<@!?{self.bot.user.id}>\s*")
