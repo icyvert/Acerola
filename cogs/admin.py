@@ -23,13 +23,16 @@ class Admin(commands.Cog):
                 continue
 
             if user_input.startswith("/c "):
-                self.channel_id = int(user_input.split()[1])
+                try:
+                    self.channel_id = int(user_input.split()[1])
+                except Exception:
+                    print("Invalid")
                 continue
 
             if self.channel_id:
                 channel = self.bot.get_channel(self.channel_id)
 
-                if isinstance(channel, discord.TextChannel):
+                if isinstance(channel, discord.abc.Messageable):
                     await channel.send(user_input)
                     continue
 

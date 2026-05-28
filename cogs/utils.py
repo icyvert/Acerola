@@ -11,19 +11,18 @@ class Utils(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.domains = {
+            "instagram.com": ("Instagram", "kkinstagram.com", "instafix.ldez.top"),
             "reddit.com": ("Reddit", "redditez.com", "rxddit.com"),
-            "instagram.com": ("Instagram", "instafix.ldez.top", "kkinstagram.com"),
+            "twitter.com": ("Twitter", "fxtwitter.com", "fixupx.com"),
             "x.com": ("X", "fixupx.com", "fxtwitter.com"),
-            "twitter.com": ("X", "fixupx.com", "fxtwitter.com"),
         }
         self.urls = re.compile(
             rf"(https?://)(?:[\w-]+\.)?({'|'.join(re.escape(d) for d in self.domains)})(/[\w\-./?=&%+]*)?"
         )
 
     def embed(self, match: re.Match, provider: str) -> str:
-        protocol = match.group(1)
-        domain = match.group(2)
-        path = match.group(3) or ""
+        protocol, domain, path = match.group(1), match.group(2), match.group(3) or ""
+
         index = 2 if provider.lower() == "alternate" else 1
         fixed_url = f"{protocol}{self.domains[domain][index]}{path}"
         response = f"[{self.domains[domain][0]}]({fixed_url})"
@@ -53,7 +52,9 @@ class Utils(commands.Cog):
         if message.author.bot:
             return
 
-        if message.content.startswith("&"):
+        context = await self.bot.get_context(message)
+
+        if context.valid:
             return
 
         match = self.urls.search(message.content)
@@ -67,7 +68,7 @@ class Utils(commands.Cog):
             pass
 
         response = self.embed(match, "default")
-        await message.channel.send(response, mention_author=False)
+        await message.reply(response, mention_author=False)
 
 
 async def setup(bot: commands.Bot) -> None:

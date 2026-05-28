@@ -102,6 +102,7 @@ class Chat(commands.Cog):
 
                 self.memory[data].append({"role": "user", "content": user_prompt})
                 self.memory[data].append({"role": "assistant", "content": response})
+
                 msg = await message.reply(response)
                 self.messages.append(msg.id)
             except Exception:
