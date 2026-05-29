@@ -15,6 +15,9 @@ class Admin(commands.Cog):
     async def cog_load(self):
         self.console = self.bot.loop.create_task(self.console_chat())
 
+    async def cog_unload(self):
+        self.console.cancel()
+
     async def console_chat(self):
         while not self.bot.is_closed():
             user_input = await asyncio.to_thread(input, "")

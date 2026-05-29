@@ -14,9 +14,9 @@ from groq.types.chat import ChatCompletionMessageParam
 class Chat(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+        self.chats = deque(maxlen=32)
         self.disabled = set()
         self.memory = {}
-        self.messages = deque(maxlen=32)
 
     async def cog_load(self) -> None:
         self.cooldown = commands.CooldownMapping.from_cooldown(
@@ -27,6 +27,9 @@ class Chat(commands.Cog):
         self.mention = re.compile(rf"\s*<@!?{self.bot.user.id}>\s*")
         prompt_path = Path(__file__).resolve().parent.parent / "system_prompt.md"
         self.system_prompt = prompt_path.read_text(encoding="utf-8").strip()
+
+    async def cog_unload(self) -> None:
+        await self.groq.close()
 
     @commands.hybrid_command(name="toggle", description="Toggle AI chat")
     @commands.guild_only()
@@ -55,7 +58,7 @@ class Chat(commands.Cog):
 
         reply = False
         if message.reference:
-            reply = message.reference.message_id in self.messages
+            reply = message.reference.message_id in self.chats
 
         if not (mention or reply):
             return
@@ -104,7 +107,7 @@ class Chat(commands.Cog):
                 self.memory[data].append({"role": "assistant", "content": response})
 
                 msg = await message.reply(response)
-                self.messages.append(msg.id)
+                self.chats.append(msg.id)
             except Exception:
                 await message.channel.send("Response Failed")
 
