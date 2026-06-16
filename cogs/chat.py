@@ -1,8 +1,7 @@
 import os
 import re
-from collections import deque
+from collections import defaultdict, deque
 from pathlib import Path
-from typing import List
 
 import discord
 from discord.ext import commands
@@ -16,7 +15,7 @@ class Chat(commands.Cog):
         self.bot = bot
         self.chats = deque(maxlen=32)
         self.disabled = set()
-        self.memory = {}
+        self.memory = defaultdict(lambda: deque(maxlen=16))
 
     async def cog_load(self) -> None:
         self.cooldown = commands.CooldownMapping.from_cooldown(
@@ -25,11 +24,12 @@ class Chat(commands.Cog):
         self.groq = AsyncGroq(api_key=os.getenv("GROQ_KEY"))
         assert self.bot.user is not None
         self.mention = re.compile(rf"\s*<@!?{self.bot.user.id}>\s*")
-        prompt_path = Path(__file__).resolve().parent.parent / "system_prompt.md"
+        prompt_path = Path(__file__).parent.parent / "system_prompt.md"
         self.system_prompt = prompt_path.read_text(encoding="utf-8").strip()
 
     async def cog_unload(self) -> None:
-        await self.groq.close()
+        if self.groq:
+            await self.groq.close()
 
     @commands.hybrid_command(name="toggle", description="Toggle AI chat")
     @commands.guild_only()
@@ -40,11 +40,12 @@ class Chat(commands.Cog):
 
         if guild in self.disabled:
             self.disabled.remove(guild)
-            await context.send("AI chat enabled")
-            return
+            toggle = "enabled"
+        else:
+            self.disabled.add(guild)
+            toggle = "disabled"
 
-        self.disabled.add(guild)
-        await context.send("AI chat disabled")
+        await context.send(f"AI chat {toggle}")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
@@ -55,10 +56,7 @@ class Chat(commands.Cog):
             return
 
         mention = self.mention.search(message.content)
-
-        reply = False
-        if message.reference:
-            reply = message.reference.message_id in self.chats
+        reply = message.reference and message.reference.message_id in self.chats
 
         if not (mention or reply):
             return
@@ -79,18 +77,13 @@ class Chat(commands.Cog):
 
         data = (message.channel.id, message.author.id)
 
-        if data not in self.memory:
-            self.memory[data] = deque(maxlen=16)
-
         async with message.channel.typing():
             try:
-                messages: List[ChatCompletionMessageParam] = [
-                    {"role": "system", "content": self.system_prompt}
+                messages: list[ChatCompletionMessageParam] = [
+                    {"role": "system", "content": self.system_prompt},
+                    *self.memory[data],
+                    {"role": "user", "content": user_prompt},
                 ]
-
-                messages.extend(self.memory[data])
-                messages.append({"role": "user", "content": user_prompt})
-
                 assert self.groq is not None
                 output = await self.groq.chat.completions.create(
                     messages=messages,
@@ -105,7 +98,6 @@ class Chat(commands.Cog):
 
                 self.memory[data].append({"role": "user", "content": user_prompt})
                 self.memory[data].append({"role": "assistant", "content": response})
-
                 msg = await message.reply(response)
                 self.chats.append(msg.id)
             except Exception:

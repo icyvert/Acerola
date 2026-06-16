@@ -20,13 +20,13 @@ class Utils(commands.Cog):
             rf"(https?://)(?:[\w-]+\.)?({'|'.join(re.escape(d) for d in self.domains)})(/[\w\-./?=&%+]*)?"
         )
 
-    def embed(self, match: re.Match, provider: str) -> str:
-        protocol, domain, path = match.group(1), match.group(2), match.group(3) or ""
-
+    def embed(self, match: re.Match[str], provider: str) -> str:
+        protocol, domain, path = match.groups()
+        path = path or ""
+        domains = self.domains[domain]
         index = 2 if provider.lower() == "alternate" else 1
-        fixed_url = f"{protocol}{self.domains[domain][index]}{path}"
-        response = f"[{self.domains[domain][0]}]({fixed_url})"
-        return response
+        fixed_url = f"{protocol}{domains[index]}{path}"
+        return f"[{domains[0]}]({fixed_url})"
 
     @commands.hybrid_command(name="fix", description="Social embeds")
     @app_commands.describe(url="Instagram, Reddit or X link", provider="Embed provider")
@@ -44,17 +44,11 @@ class Utils(commands.Cog):
             await context.send("Invalid link", ephemeral=True)
             return
 
-        response = self.embed(match, provider)
-        await context.send(response)
+        await context.send(self.embed(match, provider))
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
         if message.author.bot:
-            return
-
-        context = await self.bot.get_context(message)
-
-        if context.valid:
             return
 
         match = self.urls.search(message.content)
@@ -62,13 +56,17 @@ class Utils(commands.Cog):
         if not match:
             return
 
+        context = await self.bot.get_context(message)
+
+        if context.valid:
+            return
+
         try:
             await message.edit(suppress=True)
         except Exception:
             pass
 
-        response = self.embed(match, "default")
-        await message.reply(response, mention_author=False)
+        await message.channel.send(self.embed(match, "default"), mention_author=False)
 
 
 async def setup(bot: commands.Bot) -> None:

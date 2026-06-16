@@ -12,13 +12,14 @@ class Admin(commands.Cog):
         self.bot = bot
         self.channel_id = None
 
-    async def cog_load(self):
-        self.console = self.bot.loop.create_task(self.console_chat())
+    async def cog_load(self) -> None:
+        self.console = asyncio.create_task(self.console_chat())
 
-    async def cog_unload(self):
-        self.console.cancel()
+    async def cog_unload(self) -> None:
+        if self.console:
+            self.console.cancel()
 
-    async def console_chat(self):
+    async def console_chat(self) -> None:
         while not self.bot.is_closed():
             user_input = await asyncio.to_thread(input, "")
 
@@ -49,21 +50,22 @@ class Admin(commands.Cog):
     ) -> None:
         async with context.typing():
             assert context.guild is not None
-
             match scope:
                 case "global":
                     await self.bot.tree.sync()
-                    await context.send("Synchronized Globally")
+                    message = "Synchronized Globally"
 
                 case "guild":
                     self.bot.tree.copy_global_to(guild=context.guild)
                     await self.bot.tree.sync(guild=context.guild)
-                    await context.send("Synchronized Locally")
+                    message = "Synchronized Locally"
 
                 case "clear":
                     self.bot.tree.clear_commands(guild=context.guild)
                     await self.bot.tree.sync(guild=context.guild)
-                    await context.send("Cleared Local Commands")
+                    message = "Cleared Local Commands"
+
+            await context.send(message)
 
     @commands.hybrid_command(name="source", description="Bot source")
     @app_commands.allowed_installs(guilds=True, users=True)

@@ -16,19 +16,19 @@ class DiscordBot(commands.Bot):
         super().__init__(command_prefix="&", intents=intents, help_command=None)
 
     async def setup_hook(self) -> None:
-        cogs_dir = Path(__file__).resolve().parent / "cogs"
-        extensions = (
-            f"cogs.{cog.stem}"
-            for cog in cogs_dir.glob("*.py")
-            if cog.name != "__init__.py"
-        )
+        cogs_dir = Path(__file__).parent / "cogs"
 
-        for extension in extensions:
+        for cog in cogs_dir.glob("*.py"):
+            if cog.name == "__init__.py":
+                continue
+
+            extension = f"cogs.{cog.stem}"
+
             try:
                 await self.load_extension(extension)
-                self.logger.info(f"Loaded extension {extension}")
+                self.logger.info("Loaded extension %s", extension)
             except Exception:
-                self.logger.exception(f"Failed to load extension {extension}")
+                self.logger.exception("Failed to load extension %s", extension)
 
     async def on_command_error(
         self, context: commands.Context, error: commands.CommandError
@@ -36,7 +36,9 @@ class DiscordBot(commands.Bot):
         if isinstance(error, commands.CommandNotFound):
             return
 
-        self.logger.error(f"Exception in command '{context.command}': {error}")
+        self.logger.error(
+            "Exception in command '%s': %s", context.command, error, exc_info=error
+        )
 
 
 if __name__ == "__main__":
