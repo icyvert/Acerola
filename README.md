@@ -1,1 +1,1 @@
-test discord.py bot
+test [discord.py](https://github.com/Rapptz/discord.py) bot
