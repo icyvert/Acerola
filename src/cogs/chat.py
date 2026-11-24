@@ -32,7 +32,7 @@ class Chat(commands.Cog):
         self.groq = AsyncGroq(api_key=os.environ["GROQ_KEY"])
         if self.bot.user:
             self.mention = re.compile(rf"\s*<@!?{self.bot.user.id}>\s*")
-        prompt_path = Path(__file__).parent.parent / "system_prompt.md"
+        prompt_path = Path(__file__).parent / "prompts" / "system_prompt.md"
         self.system_prompt = prompt_path.read_text(encoding="utf-8").strip()
 
     async def cog_unload(self) -> None:
