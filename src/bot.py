@@ -24,9 +24,9 @@ class DiscordBot(commands.Bot):
             extension = f"cogs.{cog.stem}"
             try:
                 await self.load_extension(extension)
-                self.logger.info("Loaded extension %s", extension)
+                self.logger.info("Loaded %s", extension)
             except Exception:
-                self.logger.exception("Failed to load extension %s", extension)
+                self.logger.exception("Failed to load %s", extension)
 
     async def on_command_error(
         self, context: commands.Context[Any], error: commands.CommandError
@@ -34,10 +34,10 @@ class DiscordBot(commands.Bot):
         if isinstance(error, commands.CommandNotFound):
             return
 
-        self.logger.error("Exception in command '%s'", context.command, exc_info=error)
+        self.logger.error("Exception in command %s", context.command, exc_info=error)
         if context.interaction and not context.interaction.is_expired():
             try:
-                await context.send("Command failed.", ephemeral=True)
+                await context.send("Command failed", ephemeral=True)
             except discord.HTTPException:
                 pass
 

@@ -31,14 +31,14 @@ class Admin(commands.Cog):
                 user_input = input("")
             except EOFError:
                 break
-            if self.stop_event.is_set() or not user_input.strip():
+            if user_input.strip():
                 continue
 
             if user_input.startswith("/c "):
                 try:
                     self.channel_id = int(user_input.split(" ", 1)[1])
                 except (IndexError, ValueError):
-                    logger.warning("Invalid: %r", user_input)
+                    logger.warning("Invalid input")
                 continue
 
             if self.channel_id:
@@ -49,12 +49,13 @@ class Admin(commands.Cog):
     async def console_send(self, channel_id: int, user_input: str) -> None:
         channel = self.bot.get_channel(channel_id)
         if not isinstance(channel, discord.abc.Messageable):
-            logger.warning("Invalid channel %s", channel_id)
+            logger.warning("Invalid channel")
             return
+
         try:
             await channel.send(user_input)
         except discord.HTTPException:
-            logger.exception("Failed to send console message to channel %s", channel_id)
+            logger.exception("Failed to send message")
 
     @commands.command(name="sync")
     @commands.guild_only()
@@ -71,15 +72,15 @@ class Admin(commands.Cog):
             match scope:
                 case "global":
                     await self.bot.tree.sync()
-                    message = "Synchronized Globally"
+                    message = "Global synced"
                 case "guild":
                     self.bot.tree.copy_global_to(guild=context.guild)
                     await self.bot.tree.sync(guild=context.guild)
-                    message = "Synchronized Locally"
+                    message = "Local synced"
                 case "clear":
                     self.bot.tree.clear_commands(guild=context.guild)
                     await self.bot.tree.sync(guild=context.guild)
-                    message = "Cleared Local Commands"
+                    message = "Local cleared"
             await context.send(message)
 
     @commands.hybrid_command(name="source", description="Bot source")
@@ -87,6 +88,13 @@ class Admin(commands.Cog):
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     async def source(self, context: commands.Context[Any]) -> None:
         await context.send("https://github.com/icyvert/Acerola")
+
+    @commands.hybrid_command(name="ping", description="「こんにちは世界」")
+    @app_commands.allowed_installs(guilds=True, users=True)
+    @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+    async def ping(self, context: commands.Context[Any]) -> None:
+        latency = round(self.bot.latency * 1000)
+        await context.send(f"{latency}ms")
 
 
 async def setup(bot: commands.Bot) -> None:
