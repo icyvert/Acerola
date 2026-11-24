@@ -1,6 +1,5 @@
-from typing import Any, Literal
+from typing import Literal
 
-from discord import app_commands
 from discord.ext import commands
 
 
@@ -9,12 +8,10 @@ class Extension(commands.Cog):
         self.bot = bot
 
     @commands.hybrid_command(name="extension", description="Manage extensions")
-    @commands.guild_only()
     @commands.is_owner()
-    @app_commands.default_permissions(administrator=True)
     async def extension(
         self,
-        context: commands.Context[Any],
+        context: commands.Context[commands.Bot],
         action: Literal["load", "unload", "reload"],
         cog: str,
     ) -> None:

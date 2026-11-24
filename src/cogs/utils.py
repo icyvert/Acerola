@@ -1,5 +1,5 @@
 import re
-from typing import Any, Literal
+from typing import Literal
 
 import discord
 from discord import app_commands
@@ -33,7 +33,7 @@ class Utils(commands.Cog):
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
     async def fix(
         self,
-        context: commands.Context[Any],
+        context: commands.Context[commands.Bot],
         url: str,
         provider: Literal["default", "alternate"] = "default",
     ) -> None:
@@ -54,14 +54,11 @@ class Utils(commands.Cog):
         if context.valid:
             return
 
-        if message.guild and isinstance(
-            message.channel, (discord.abc.GuildChannel, discord.Thread)
-        ):
-            try:
-                await message.edit(suppress=True)
-            except discord.HTTPException:
-                pass
-        await message.channel.send(self.embed(match, "default"))
+        try:
+            await message.channel.send(self.embed(match, "default"))
+            await message.edit(suppress=True)
+        except discord.HTTPException:
+            pass
 
 
 async def setup(bot: commands.Bot) -> None:

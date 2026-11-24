@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import threading
-from typing import Any, Literal
 
 import discord
 from discord import app_commands
@@ -31,7 +30,7 @@ class Admin(commands.Cog):
                 user_input = input("")
             except EOFError:
                 break
-            if user_input.strip():
+            if not user_input.strip():
                 continue
 
             if user_input.startswith("/c "):
@@ -60,39 +59,24 @@ class Admin(commands.Cog):
     @commands.command(name="sync")
     @commands.guild_only()
     @commands.is_owner()
-    async def sync(
-        self,
-        context: commands.Context[Any],
-        scope: Literal["global", "guild", "clear"] = "global",
-    ) -> None:
+    async def sync(self, context: commands.Context[commands.Bot]) -> None:
         if not context.guild:
             return
 
         async with context.typing():
-            match scope:
-                case "global":
-                    await self.bot.tree.sync()
-                    message = "Global synced"
-                case "guild":
-                    self.bot.tree.copy_global_to(guild=context.guild)
-                    await self.bot.tree.sync(guild=context.guild)
-                    message = "Local synced"
-                case "clear":
-                    self.bot.tree.clear_commands(guild=context.guild)
-                    await self.bot.tree.sync(guild=context.guild)
-                    message = "Local cleared"
-            await context.send(message)
+            await self.bot.tree.sync()
+            await context.send("Synced")
 
     @commands.hybrid_command(name="source", description="Bot source")
     @app_commands.allowed_installs(guilds=True, users=True)
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-    async def source(self, context: commands.Context[Any]) -> None:
+    async def source(self, context: commands.Context[commands.Bot]) -> None:
         await context.send("https://github.com/icyvert/Acerola")
 
     @commands.hybrid_command(name="ping", description="「こんにちは世界」")
     @app_commands.allowed_installs(guilds=True, users=True)
     @app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-    async def ping(self, context: commands.Context[Any]) -> None:
+    async def ping(self, context: commands.Context[commands.Bot]) -> None:
         latency = round(self.bot.latency * 1000)
         await context.send(f"{latency}ms")
 
