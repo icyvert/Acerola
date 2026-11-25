@@ -67,10 +67,12 @@ class Admin(commands.Cog):
     async def sync(self, context: commands.Context[commands.Bot]) -> None:
         if not context.guild:
             return
-
-        async with context.typing():
-            await self.bot.tree.sync()
-            await context.send("Synced")
+        try:
+            async with context.typing():
+                await self.bot.tree.sync()
+                await context.send("Synced")
+        except discord.HTTPException:
+            self.logger.exception("Failed to sync")
 
     @commands.hybrid_command(name="source", description="Bot source")
     @app_commands.allowed_installs(guilds=True, users=True)
