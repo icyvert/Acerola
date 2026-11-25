@@ -62,7 +62,6 @@ class Admin(commands.Cog):
             self.logger.exception("Failed to send message")
 
     @commands.command(name="sync")
-    @commands.guild_only()
     @commands.is_owner()
     async def sync(self, context: commands.Context[commands.Bot]) -> None:
         if not context.guild:
