@@ -6,12 +6,11 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-logger = logging.getLogger(__name__)
-
 
 class Admin(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+        self.logger = logging.getLogger(__name__)
         self.channel_id: int | None = None
         self.stop_event = threading.Event()
         self.thread: threading.Thread | None = None
@@ -40,10 +39,10 @@ class Admin(commands.Cog):
                 try:
                     self.channel_id = int(user_input.split(" ", 1)[1])
                 except (IndexError, ValueError):
-                    logger.warning("Invalid input")
+                    self.logger.warning("Invalid input")
                 continue
             if self.channel_id is None:
-                logger.warning("No channel")
+                self.logger.warning("No channel")
                 continue
 
             if self.loop.is_running():
@@ -54,13 +53,13 @@ class Admin(commands.Cog):
     async def console_send(self, channel_id: int, user_input: str) -> None:
         channel = self.bot.get_channel(channel_id)
         if not isinstance(channel, discord.abc.Messageable):
-            logger.warning("Invalid channel")
+            self.logger.warning("Invalid channel")
             return
 
         try:
             await channel.send(user_input)
         except discord.HTTPException:
-            logger.exception("Failed to send message")
+            self.logger.exception("Failed to send message")
 
     @commands.command(name="sync")
     @commands.guild_only()
