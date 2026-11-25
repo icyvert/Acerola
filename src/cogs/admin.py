@@ -17,6 +17,7 @@ class Admin(commands.Cog):
         self.thread: threading.Thread | None = None
 
     async def cog_load(self) -> None:
+        self.loop = asyncio.get_running_loop()
         self.stop_event.clear()
         self.thread = threading.Thread(target=self.console_loop, daemon=True)
         self.thread.start()
@@ -30,6 +31,8 @@ class Admin(commands.Cog):
                 user_input = input("")
             except EOFError:
                 break
+            if self.stop_event.is_set() or self.bot.is_closed():
+                break
             if not user_input.strip():
                 continue
 
@@ -39,10 +42,13 @@ class Admin(commands.Cog):
                 except (IndexError, ValueError):
                     logger.warning("Invalid input")
                 continue
+            if self.channel_id is None:
+                logger.warning("No channel")
+                continue
 
-            if self.channel_id:
+            if self.loop.is_running():
                 asyncio.run_coroutine_threadsafe(
-                    self.console_send(self.channel_id, user_input), self.bot.loop
+                    self.console_send(self.channel_id, user_input), self.loop
                 )
 
     async def console_send(self, channel_id: int, user_input: str) -> None:
